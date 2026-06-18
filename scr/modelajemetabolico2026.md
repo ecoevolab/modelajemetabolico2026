@@ -1,9 +1,34 @@
+# Curso Modelaje Metabólico 2026
+
+## 1. **Configuración de COMETS en DockerDesktop**
+##### i. Contenedor de COMETS en DockerDesktop
+```texto
+dukovski/comets-lab:1.0
+```
+##### ii. Crear imagen
+Host port: 8888
+
+##### ii. Instalar git
+apt-get update
+
+apt-get install git
+
+git --version
+
+##### iii. Clonar repositorio
+git clone https://github.com/ecoevolab/modelajemetabolico2026.git
+
+## 2. **Ejemplo**
+Revisa la configuración de la funcion sim_syncom_comets.py
+
+```text
+!python3 /workspace/modelajemetabolico2026/scr/sim_syncom_comets.py --h
+```
 ##### i. Crecimiento aislado
    a) Simular el crecimiento de solo una bacateria en el tiempo
 ```texto
-# Simulación de crecimiento aislado de E. coli en medio m9
-!python3 /workspace/ModelajeMetabolico/scr/sim_syncom_comets.py \
---gem_path /workspace/ModelajeMetabolico/modelos \
+!python3 /workspace/modelajemetabolico2026/scr/sim_syncom_comets.py \
+--gem_path /workspace/modelajemetabolico2026/modelos \
 --strains Escherichia_coli \
 --initial_mass 1e-5 \
 --cycles 3500 \
@@ -13,7 +38,6 @@
 
   b) ¿Cómo crece la bacteria? Graficar su biomasa en el tiempo.
 ```texto
-# Gráfica biomasaxtiempo de E. coli 
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -33,21 +57,24 @@ biomasa.columns = [
     "biomasa"
 ]
 
+# Convertir ciclos a horas
+biomasa["hora"] = biomasa["ciclo"] * 0.1
+
 # Graficar
 plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa["ciclo"],
+    biomasa["hora"],
     biomasa["biomasa"],
     linewidth=2,
-    color='green'
+    color="green"
 )
 
-plt.xlabel("Ciclos", fontsize=13)
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
-plt.title("Curva de crecimiento de Rhodococcus erythropolis")
-
+plt.title(r"Curva de crecimiento de $\mathit{Escherichia\ coli}$")
 plt.grid(True, alpha=0.3)
+
 plt.tight_layout()
 
 plt.savefig(
@@ -62,7 +89,6 @@ plt.show()
   c) ¿Cómo cambia el consumo de glucosa durante el crecimiento de E. coli? 
 
 ```texto
-# Graficar metabolítos de interés (glc, etoh)
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -73,6 +99,55 @@ df_flujos = pd.read_csv(
     flujos,
     sep="\t"
 )
+
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+df_flujos["hora"] = df_flujos["cycle"] * 0.1
+
+# Seleccionar metabolito
+metabolito_seleccionado = "EX_glc__D_e"
+
+# Revisar si el metabolito existe
+if metabolito_seleccionado not in df_flujos.columns:
+    print(f"Error: {metabolito_seleccionado} no existe.")
+
+else:
+    plt.figure(figsize=(8, 5))
+
+    plt.plot(
+        df_flujos["hora"],
+        df_flujos[metabolito_seleccionado],
+        linewidth=2,
+        color="orange"
+    )
+
+    plt.title(
+        "Flujo de glucosa",
+        fontweight="bold"
+    )
+
+    plt.xlabel("Tiempo (h)")
+    plt.ylabel("Flux (mmol/gDW/h)")
+
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+```
+  c) ¿Cómo cambia el consumo de etanol durante el crecimiento de E. coli? 
+```text
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Cargar datos
+flujos = "/workspace/ecoli/Escherichia_coli_exchange_fluxes.tsv"
+
+df_flujos = pd.read_csv(
+    flujos,
+    sep="\t"
+)
+
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+df_flujos["hora"] = df_flujos["cycle"] * 0.1
 
 # Seleccionar metabolito
 metabolito_seleccionado = "EX_etoh_e"
@@ -85,29 +160,30 @@ else:
     plt.figure(figsize=(8, 5))
 
     plt.plot(
-        df_flujos["cycle"],
+        df_flujos["hora"],
         df_flujos[metabolito_seleccionado],
         linewidth=2,
-        color='orange'
+        color="orange"
     )
 
     plt.title(
-        f"Flujo de {metabolito_seleccionado}",
+        "Flujo de etanol",
         fontweight="bold"
     )
 
-    plt.xlabel("Ciclo")
-    plt.ylabel("Flux")
+    plt.xlabel("Tiempo (h)")
+    plt.ylabel("Flux (mmol/gDW/h)")
+
+    plt.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.show()
 ```
-
    
    e) ¿De qué depende el crecimiento de una bacteria? Comparar cómo cambia la biomasa de una misma bacteria 
    si cambia el medio de cultivo.
 ```text 
-# Comparación de E. coli creciendo en medio m9 y en medio LB
+# Comparación de E. coli creciendo en medio M9 y en medio LB
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -120,7 +196,7 @@ biomasa1 = pd.read_csv(
 
 # Archivo 2
 biomasa2 = pd.read_csv(
-    "/workspace/ModelajeMetabolico/simulaciones/Ecoli_lb/biomass.txt",
+    "/workspace/modelajemetabolico2026/simulaciones/Ecoli_lb/biomass.txt",
     sep=r"\s+",
     header=None
 )
@@ -137,38 +213,46 @@ columnas = [
 biomasa1.columns = columnas
 biomasa2.columns = columnas
 
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa1["hora"] = biomasa1["ciclo"] * 0.1
+biomasa2["hora"] = biomasa2["ciclo"] * 0.1
+
 # Graficar
 plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa1["ciclo"],
+    biomasa1["hora"],
     biomasa1["biomasa"],
     linewidth=2,
     color="green",
-    label="medio m9"
+    label="Medio M9"
 )
 
 plt.plot(
-    biomasa2["ciclo"],
+    biomasa2["hora"],
     biomasa2["biomasa"],
     linewidth=2,
-    color='yellow',
-    label="medio lb"
+    color="gold",
+    label="Medio LB"
 )
 
-plt.xlabel("Ciclos", fontsize=13)
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
-plt.title("Comparación de curvas de crecimiento")
+plt.title(
+    r"Comparación de curvas de crecimiento de $\mathit{Escherichia\ coli}$"
+)
 
 plt.legend()
 plt.grid(True, alpha=0.3)
+
+# Marcas cada 10 horas
+tiempo_max = max(
+    biomasa1["hora"].max(),
+    biomasa2["hora"].max()
+)
+
 plt.tight_layout()
 
-plt.savefig(
-    "/workspace/ecoli/comparacion_crecimiento.png",
-    dpi=300,
-    bbox_inches="tight"
-)
 
 plt.show()
 ```
@@ -184,7 +268,7 @@ a). En la carpeta de modelos dentro `modelajemetabolico2026` encontrarás difere
     !python3 /workspace/ModelajeMetabolico/scr/sim_syncom_comets.py \
     --gem_path /workspace/ModelajeMetabolico/modelos \
     --strains  Bacillus_subtilis \
-    --initial_mass 1e-5 \
+    --initial_mass 1e-4 \
     --cycles 3500 \
     --media  m9 \
     --outdir ./bsubtilis
@@ -192,48 +276,50 @@ a). En la carpeta de modelos dentro `modelajemetabolico2026` encontrarás difere
   
 ```text
        # Gráfica biomasaxtiempo de B. subtilis 
+# Gráfica biomasa vs tiempo de B. subtilis
 import pandas as pd
 import matplotlib.pyplot as plt
-    
-    # Cargar archivo
+
+# Cargar archivo
 biomasa = pd.read_csv(
-        "/workspace/bsubtilis/biomass.txt",
-        sep=r"\s+",
-        header=None
-    )
-    
-    # Renombrar columnas
+    "/workspace/bsubtilis/biomass.txt",
+    sep=r"\s+",
+    header=None
+)
+
+# Renombrar columnas
 biomasa.columns = [
-        "ciclo",
-        "col2",
-        "col3",
-        "modelo",
-        "biomasa"
-    ]
-    
-    # Graficar
+    "ciclo",
+    "col2",
+    "col3",
+    "modelo",
+    "biomasa"
+]
+
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa["hora"] = biomasa["ciclo"] * 0.1
+
+# Graficar
 plt.figure(figsize=(8, 5))
-    
+
 plt.plot(
-        biomasa["ciclo"],
-        biomasa["biomasa"],
-        linewidth=2,
-        color='red'
-    )
-    
-plt.xlabel("Ciclos", fontsize=13)
+    biomasa["hora"],
+    biomasa["biomasa"],
+    linewidth=2,
+    color="red"
+)
+
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
-plt.title(r"Comparación de curvas de crecimiento de $\mathit{Bacillus\ subtilis}$")
+plt.title(
+    r"Curva de crecimiento de $\mathit{Bacillus\ subtilis}$"
+)
 
 plt.grid(True, alpha=0.3)
+
+
 plt.tight_layout()
-    
-plt.savefig(
-        "/workspace/bsubtilis/curva_crecimiento.png",
-        dpi=300,
-        bbox_inches="tight"
-    )
-    
+
 plt.show()
 
     ```
@@ -242,18 +328,19 @@ plt.show()
   Grafica, con ayuda del siguiente código, como cambian las biomasas de ambas bacterias cuando se encuentran en interacción.
   
   ```text
-    # Crecimiento aislado de B. subtilis en medio m9
-  !python3 /workspace/ModelajeMetabolico/scr/sim_syncom_comets.py \
-  --gem_path /workspace/ModelajeMetabolico/modelos \
-  --strains  Escherichia_coli Bacillus_subtilis \
-  --initial_mass 1e-5 \
-  --cycles 3500 \
-  --media  m9 \
-  --outdir ./ecoli_vs_bsubtilis
+ # Crecimiento aislado de B. subtilis en medio m9
+!python3 /workspace/ModelajeMetabolico/scr/sim_syncom_comets.py \
+--gem_path /workspace/ModelajeMetabolico/modelos \
+--strains  Escherichia_coli Bacillus_subtilis \
+--initial_mass 1e-5 \
+--cycles 3500 \
+--media  m9 \
+--outdir ./ecoli_vs_bsubtilis
+
   ```
   
   ```text
-      # Gráfica E. coli vs B. subtilis
+   # Gráfica E. coli vs B. subtilis
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -273,9 +360,17 @@ biomasa.columns = [
     "biomasa"
 ]
 
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa["hora"] = biomasa["ciclo"] * 0.1
+
 colores = {
-    "Escherichia_coli.cmd": "green",
-    "Bacillus_subtilis.cmd": "red"
+    "Escherichia_coli.cmd": "lightgreen",
+    "Bacillus_subtilis.cmd": "lightcoral"
+}
+
+etiquetas = {
+    "Escherichia_coli.cmd": r"$\mathit{Escherichia\ coli}$",
+    "Bacillus_subtilis.cmd": r"$\mathit{Bacillus\ subtilis}$"
 }
 
 # Graficar
@@ -288,26 +383,30 @@ for modelo in biomasa["modelo"].unique():
     ]
 
     plt.plot(
-        datos["ciclo"],
+        datos["hora"],
         datos["biomasa"],
         linewidth=2,
-        color=colores[modelo],
-        label=modelo.replace(".cmd", "")
+        color=colores.get(modelo, "gray"),
+        label=etiquetas.get(modelo, modelo.replace(".cmd", ""))
     )
 
-plt.xlabel("Ciclos", fontsize=13)
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
 plt.title("Curvas de crecimiento")
+
 
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
 plt.show()
+
+     
   ```
   * Compara con curvas de crecimiento como cambia cada el crecimiento cuando está creciendo de manera aislada vs como cambia cuando están en comunidad.
   
 ```text
+# Gráfica E. coli aislada vs E. coli en interacción
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -337,15 +436,19 @@ columnas = [
 biomasa1.columns = columnas
 biomasa2.columns = columnas
 
-# Quedarse solo con E. coli
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa1["hora"] = biomasa1["ciclo"] * 0.1
+biomasa2["hora"] = biomasa2["ciclo"] * 0.1
+
+# Quedarse solo con E. coli en la simulación de interacción
 biomasa2 = biomasa2[
     biomasa2["modelo"] == "Escherichia_coli.cmd"
 ]
 
-plt.figure(figsize=(8,5))
+plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa1["ciclo"],
+    biomasa1["hora"],
     biomasa1["biomasa"],
     label=r"$\mathit{Escherichia\ coli}$ aislada",
     linewidth=2,
@@ -353,16 +456,24 @@ plt.plot(
 )
 
 plt.plot(
-    biomasa2["ciclo"],
+    biomasa2["hora"],
     biomasa2["biomasa"],
     label=r"$\mathit{Escherichia\ coli}$ en interacción",
     linewidth=2,
     color="lightgreen"
 )
 
+plt.xlabel("Tiempo (h)", fontsize=13)
+plt.ylabel("Biomasa (gDW)", fontsize=13)
+plt.title(
+    r"$\mathit{Escherichia\ coli}$ aislada vs en interacción con $\mathit{Bacillus\ subtilis}$"
+)
+
 plt.legend()
 plt.grid(True, alpha=0.3)
-plt.show()    
+plt.tight_layout()
+
+plt.show()   
 ```
 
 ```text
@@ -396,15 +507,19 @@ columnas = [
 biomasa1.columns = columnas
 biomasa2.columns = columnas
 
-# Quedarse solo con B. subtilis
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa1["hora"] = biomasa1["ciclo"] * 0.1
+biomasa2["hora"] = biomasa2["ciclo"] * 0.1
+
+# Quedarse solo con B. subtilis en la simulación de interacción
 biomasa2 = biomasa2[
     biomasa2["modelo"] == "Bacillus_subtilis.cmd"
 ]
 
-plt.figure(figsize=(8,5))
+plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa1["ciclo"],
+    biomasa1["hora"],
     biomasa1["biomasa"],
     label=r"$\mathit{Bacillus\ subtilis}$ aislada",
     linewidth=2,
@@ -412,14 +527,19 @@ plt.plot(
 )
 
 plt.plot(
-    biomasa2["ciclo"],
+    biomasa2["hora"],
     biomasa2["biomasa"],
     label=r"$\mathit{Bacillus\ subtilis}$ en interacción",
     linewidth=2,
     color="lightcoral"
 )
 
-plt.legend()
-plt.grid(True, alpha=0.3)
+plt.xlabel("Tiempo (h)", fontsize=13)
+plt.ylabel("Biomasa (gDW)", fontsize=13)
+plt.title(
+    r"$\mathit{Bacillus\ subtilis}$ aislada vs en interacción con $\mathit{Escherichia\ coli}$"
+)
+
+
 plt.show()
 ```

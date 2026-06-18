@@ -57,20 +57,24 @@ biomasa.columns = [
     "biomasa"
 ]
 
+# Convertir ciclos a horas
+biomasa["hora"] = biomasa["ciclo"] * 0.1
+
 # Graficar
 plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa["ciclo"],
+    biomasa["hora"],
     biomasa["biomasa"],
     linewidth=2,
-    color='green'
+    color="green"
 )
 
-plt.xlabel("Ciclos", fontsize=13)
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
 plt.title(r"Curva de crecimiento de $\mathit{Escherichia\ coli}$")
 plt.grid(True, alpha=0.3)
+
 plt.tight_layout()
 
 plt.savefig(
@@ -85,7 +89,6 @@ plt.show()
   c) ¿Cómo cambia el consumo de glucosa durante el crecimiento de E. coli? 
 
 ```texto
-# Graficar metabolítos de interés (glc, etoh)
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -96,6 +99,9 @@ df_flujos = pd.read_csv(
     flujos,
     sep="\t"
 )
+
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+df_flujos["hora"] = df_flujos["cycle"] * 0.1
 
 # Seleccionar metabolito
 metabolito_seleccionado = "EX_glc__D_e"
@@ -108,26 +114,27 @@ else:
     plt.figure(figsize=(8, 5))
 
     plt.plot(
-        df_flujos["cycle"],
+        df_flujos["hora"],
         df_flujos[metabolito_seleccionado],
         linewidth=2,
-        color='blue'
+        color="orange"
     )
 
     plt.title(
-        f"Flujo de glucosa",
+        "Flujo de glucosa",
         fontweight="bold"
     )
 
-    plt.xlabel("Ciclo")
-    plt.ylabel("Flux")
+    plt.xlabel("Tiempo (h)")
+    plt.ylabel("Flux (mmol/gDW/h)")
+
+    plt.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.show()
 ```
   c) ¿Cómo cambia el consumo de etanol durante el crecimiento de E. coli? 
 ```text
-# Graficar metabolítos de interés (glc, etoh)
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -138,6 +145,9 @@ df_flujos = pd.read_csv(
     flujos,
     sep="\t"
 )
+
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+df_flujos["hora"] = df_flujos["cycle"] * 0.1
 
 # Seleccionar metabolito
 metabolito_seleccionado = "EX_etoh_e"
@@ -150,19 +160,21 @@ else:
     plt.figure(figsize=(8, 5))
 
     plt.plot(
-        df_flujos["cycle"],
+        df_flujos["hora"],
         df_flujos[metabolito_seleccionado],
         linewidth=2,
-        color='orange'
+        color="orange"
     )
 
     plt.title(
-        f"Flujo de glucosa",
+        "Flujo de etanol",
         fontweight="bold"
     )
 
-    plt.xlabel("Ciclo")
-    plt.ylabel("Flux")
+    plt.xlabel("Tiempo (h)")
+    plt.ylabel("Flux (mmol/gDW/h)")
+
+    plt.grid(True, alpha=0.3)
 
     plt.tight_layout()
     plt.show()
@@ -171,7 +183,7 @@ else:
    e) ¿De qué depende el crecimiento de una bacteria? Comparar cómo cambia la biomasa de una misma bacteria 
    si cambia el medio de cultivo.
 ```text 
-# Comparación de E. coli creciendo en medio m9 y en medio LB
+# Comparación de E. coli creciendo en medio M9 y en medio LB
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -201,39 +213,46 @@ columnas = [
 biomasa1.columns = columnas
 biomasa2.columns = columnas
 
+# Convertir ciclos a horas (COMETS: 1 ciclo = 0.1 h)
+biomasa1["hora"] = biomasa1["ciclo"] * 0.1
+biomasa2["hora"] = biomasa2["ciclo"] * 0.1
+
 # Graficar
 plt.figure(figsize=(8, 5))
 
 plt.plot(
-    biomasa1["ciclo"],
+    biomasa1["hora"],
     biomasa1["biomasa"],
     linewidth=2,
     color="green",
-    label="medio m9"
+    label="Medio M9"
 )
 
 plt.plot(
-    biomasa2["ciclo"],
+    biomasa2["hora"],
     biomasa2["biomasa"],
     linewidth=2,
-    color='yellow',
-    label="medio lb"
+    color="gold",
+    label="Medio LB"
 )
 
-plt.xlabel("Ciclos", fontsize=13)
+plt.xlabel("Tiempo (h)", fontsize=13)
 plt.ylabel("Biomasa (gDW)", fontsize=13)
-plt.title(r"Comparación de curvas de crecimiento de $\mathit{Escherichia\ coli}$")
-
+plt.title(
+    r"Comparación de curvas de crecimiento de $\mathit{Escherichia\ coli}$"
+)
 
 plt.legend()
 plt.grid(True, alpha=0.3)
+
+# Marcas cada 10 horas
+tiempo_max = max(
+    biomasa1["hora"].max(),
+    biomasa2["hora"].max()
+)
+
 plt.tight_layout()
 
-plt.savefig(
-    "/workspace/ecoli/comparacion_crecimiento.png",
-    dpi=300,
-    bbox_inches="tight"
-)
 
 plt.show()
 ```
@@ -241,7 +260,7 @@ plt.show()
 
 a). En la carpeta de modelos dentro `modelajemetabolico2026` encontrarás diferentes modelos metabólicos.
     
-  * Simula el crecimiento aislado de *Bacillus_subtilis*, grafica como cambia su biomasa en el tiempo.
+  * Simula el crecimiento aislado de *Bacillus_subtilis*, grafica como cambia su biomasa en el tiempo. 
   
   * Simula el crecimiento de una comunidad de dos bacterias, usa los modelos metabólicos de *Escherichia_coli* y *Bacillus_subtilis* que encontrarás en la carpeta `modelos`.
   Grafica, con ayuda del siguiente código, como cambian las biomasas de ambas bacterias cuando se encuentran en interacción.
@@ -249,9 +268,6 @@ a). En la carpeta de modelos dentro `modelajemetabolico2026` encontrarás difere
   * Compara con curvas de crecimiento como cambia cada el crecimiento cuando está creciendo de manera aislada vs como cambia cuando están en comunidad.
   
   
-
-
-
 
 
 
